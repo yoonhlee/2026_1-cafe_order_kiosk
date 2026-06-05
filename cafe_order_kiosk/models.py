@@ -8,52 +8,67 @@ from cafe_order_kiosk.utils import utc_now
 
 
 class OrderStatus(str, Enum):
-    OPEN = "open"
-    PAID = "paid"
-    CANCELED = "canceled"
+OPEN = "open"
+PAID = "paid"
+CANCELED = "canceled"
 
 
 @dataclass(frozen=True)
 class MenuItem:
-    id: int
-    name: str
-    price: int
-    category: str | None = None
-    description: str | None = None
-    is_available: bool = True
+id: int
+name: str
+price: int
+category: str | None = None
+description: str | None = None
+is_available: bool = True
 
 
 @dataclass
 class OrderItem:
-    menu_item_id: int
-    name: str
-    unit_price: int
-    quantity: int
-    options: list[str] = field(default_factory=list)
+menu_item_id: int
+name: str
+unit_price: int
+quantity: int
+options: list[str] = field(default_factory=list)
 
-    @property
-    def line_total(self) -> int:
-        return self.unit_price * self.quantity
+@property
+def line_total(self) -> int:
+return self.unit_price * self.quantity
 
 
 @dataclass(frozen=True)
 class Payment:
-    method: str
-    amount: int
-    paid_at: datetime
+method: str
+amount: int
+paid_at: datetime
 
 
 @dataclass
 class Order:
-    id: int
-    items: list[OrderItem] = field(default_factory=list)
-    status: OrderStatus = OrderStatus.OPEN
-    created_at: datetime = field(default_factory=utc_now)
-    paid_at: datetime | None = None
-    canceled_at: datetime | None = None
-    note: str | None = None
-    payment: Payment | None = None
+id: int
+items: list[OrderItem] = field(default_factory=list)
+status: OrderStatus = OrderStatus.OPEN
+created_at: datetime = field(default_factory=utc_now)
+paid_at: datetime | None = None
+canceled_at: datetime | None = None
+note: str | None = None
+payment: Payment | None = None
 
-    @property
-    def total(self) -> int:
-        return sum(item.line_total for item in self.items)
+@property
+def total(self) -> int:
+return sum(item.line_total for item in self.items)
+
+
+@dataclass(frozen=True)
+class MenuStat:
+    menu_item_id: int
+    name: str
+    total_quantity: int
+    total_revenue: int
+
+
+@dataclass
+class SessionStats:
+    total_revenue: int
+    paid_order_count: int
+    top_menus: list[MenuStat]

@@ -45,6 +45,8 @@ def run_cli() -> int:
             handle_orders(store, args)
         elif command in {"결제", "pay"}:
             handle_pay(store, state, args)
+        elif command in {"통계", "stats"}:
+            handle_stats(store, args)
         else:
             print("알 수 없는 명령입니다. '도움말'을 입력하세요.")
     print("종료합니다.")
@@ -62,6 +64,7 @@ def print_help() -> None:
     print("\t주문 취소")
     print("\t주문목록 목록 [진행중|결제완료|취소]")
     print("\t결제 <방법> [금액]")
+    print("\t통계 [TOP_N]")
     print("\t도움말")
     print("\t종료")
 
@@ -226,6 +229,32 @@ def print_order(order) -> None:
             f" - {format_money(item.line_total)}"
         )
     print(f"합계: {format_money(order.total)}")
+
+
+def handle_stats(store: KioskStore, args: list[str]) -> None:
+    top_n = 5
+    if args:
+        parsed = parse_int_arg(args[:1], "top_n")
+        if parsed is None:
+            return
+        if parsed < 1:
+            print("TOP_N은 1 이상이어야 합니다.")
+            return
+        top_n = parsed
+
+    stats = store.get_stats(top_n=top_n)
+    print("=== 세션 판매 통계 ===")
+    print(f"총 매출: {format_money(stats.total_revenue)}원")
+    print(f"결제 완료 주문 수: {stats.paid_order_count}건")
+    print(f"인기 메뉴 TOP {top_n}:")
+    if not stats.top_menus:
+        print("  (데이터 없음)")
+    else:
+        for rank, menu in enumerate(stats.top_menus, start=1):
+            print(
+                f"  {rank}. {menu.name}"
+                f" - {menu.total_quantity}개 / {format_money(menu.total_revenue)}원"
+            )
 
 
 def parse_int_arg(args: list[str], name: str) -> int | None:
